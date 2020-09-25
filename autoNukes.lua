@@ -80,7 +80,9 @@ last_time = os.clock()
 
 is_casting = false
 is_busy = 0
-action_delay = 2
+action_delay = 1.2
+after_cast_delay = 1.5
+failed_cast_delay = 1.5
 
 function buff_active(id)
     if T(windower.ffxi.get_player().buffs):contains(BuffID) == true then
@@ -281,76 +283,6 @@ function cast_spell(spell, target)
     return true
 end
 
--- 
--- The engine is where the magic happens
-function engine()
-    player = windower.ffxi.get_player()
-    local action_taken = false
-    local cast_delay = 0
-    local spell = ''
-    local target = nil
-    local time = os.clock()
-    local delta_time = time - last_time
-    last_time = time
-    if (settings.verbose) then
-        windower.add_to_chat(17, _addon.name..": Engine loop...\nPlayer status: "..player.status)
-    end
-
-    if (is_busy > 0) then
-        if (settings.verbose) then
-            windower.add_to_chat(17, _addon.name..": Busy for "..tostring(is_busy).." seconds")
-        end
-        is_busy = is_busy - delta_time
-
-        if (is_busy < 0) then
-            is_busy = 0    
-        end
-    elseif (stop == true) then 
-        if (settings.verbose) then
-            windower.add_to_chat(17, _addon.name..": Stopped")
-        end
-        return
-    elseif (pause == -9999) then
-        if (settings.verbose) then
-            windower.add_to_chat(17, _addon.name..": Paused indefinently")
-        end
-    elseif (pause > 0) then
-        if (settings.verbose) then
-            windower.add_to_chat(17, _addon.name..": Busy for "..tostring(pause).." seconds")
-        end
-        pause = pause - delta_time
-        if (pause <= 0) then
-            pause = 0.0
-        end    
-    elseif (ready_to_cast()) then
-        if (settings.verbose) then
-            windower.add_to_chat(17, _addon.name..": Ready to cast")
-        end
-        if (math.random(1, 100) > settings.frequency) then
-            target = choose_target()
-            if (target ~= nil) then
-                set_target(target)
-                spell = choose_spell()
-                if (spell ~= nil and spell ~= '') then
-                    if (check_hpp(target) and check_distance(target)) then
-                        action_taken = true
-                        cast_spell(spell, target)
-                        cast_delay = res.spells:with('name', spell).cast_time
-                        cast_delay = cast_delay + ((cast_delay < action_delay) and action_delay or 0)
-                    end
-                end
-            end
-        end
-    end
-
-    local d = (action_taken == true and (settings.delay + cast_delay) or 1)
-
-    if (settings.verbose) then
-        windower.add_to_chat(17, _addon.name..": Action taken? "..(action_taken == true and "Yes" or "No") .." Sleeping for "..d.." seconds")
-    end
-    next_run = coroutine.schedule(engine, d)
-end
-
 function engine_start()
     windower.add_to_chat(17, _addon.name..": Starting...")
     player = windower.ffxi.get_player()
@@ -358,14 +290,11 @@ function engine_start()
     pause = 0
     is_busy = player.status
     last_time = os.clock()
-
-    engine()
 end
 
 function engine_stop()
     windower.add_to_chat(17, _addon.name..": Stopping...")
     stop = true
-    coroutine.close(next_run)
 end
 
 function engine_pause(t) 
@@ -403,19 +332,37 @@ function show_status()
 
 end
 
-windower.register_event('incoming chunk', function(id, data)
-    if (id == 0x028) then
-        local action_message = packets.parse('incoming', data)
-        if (action_message['Category'] == 4) then
-            is_casting = false
-        elseif (action_message['Category'] == 8) then
-            is_casting = true
-            if (action_message['Target 1 Action 1 Message'] == 0) then
-                is_casting = false
-                is_busy = action_delay
-            end
-        end
-    end
+-- Check for skillchain effects applied, this can get wonky if/when a group is skillchaining on multiple mobs at once
+windower.register_event('incoming chunk', function(id, packet, data, modified, is_injected, is_blocked)
+	if (id ~= 0x28 or not active) then
+		return
+	end
+	
+	player = windower.ffxi.get_player()
+
+	if (data:unpack('I', 6) == player.id) then 
+		local category, param = data:unpack( 'b4b16', 11, 3)
+		local recast, targ_id = data:unpack('b32b32', 15, 7)
+		local effect, message = data:unpack('b17b10', 27, 6)
+		
+		if start_act:contains(category) then
+			if param == 24931 then                  -- Begin Casting/WS/Item/Range
+				is_busy = 0
+				is_casting = true
+			elseif param == 28787 then              -- Failed Casting/WS/Item/Range
+				is_casting = false
+				is_busy = failed_cast_delay
+			end
+		elseif category == 6 then                   -- Use Job Ability
+			is_busy = ability_delay
+		elseif category == 4 then                   -- Finish Casting
+			is_busy = after_cast_delay
+			is_casting = false
+		elseif finish_act:contains(category) then   -- Finish Range/WS/Item Use
+			is_busy = 0
+			is_casting = false
+		end
+	end
 end)
 
 windower.register_event('outgoing chunk', function(id, data)
@@ -423,6 +370,63 @@ windower.register_event('outgoing chunk', function(id, data)
         local action_message = packets.parse('outgoing', data)
         player_rot = action_message['Rotation']
     end
+end)
+
+windower.register_event('prerender', function(...)
+    if (stop == true) then return end
+    player = windower.ffxi.get_player()
+    local action_taken = false
+    local cast_delay = 0
+    local spell = ''
+    local target = nil
+    local time = os.clock()
+    local delta_time = time - last_time
+    last_time = time
+
+    if (settings.verbose) then
+        windower.add_to_chat(17, _addon.name..": Engine loop...\nPlayer status: "..player.status)
+    end
+
+    if (is_busy > 0) then
+        if (settings.verbose) then
+            windower.add_to_chat(17, _addon.name..": Busy for "..tostring(is_busy).." seconds")
+        end
+        is_busy = (is_busy - delta_time) > 0 and (is_busy - delta_time) or 0
+        if (is_busy > 0) then return end
+    end
+
+    if (pause == -9999) then
+        if (settings.verbose) then
+            windower.add_to_chat(17, _addon.name..": Paused indefinently")
+        end
+    elseif (pause > 0) then
+        if (settings.verbose) then
+            windower.add_to_chat(17, _addon.name..": Busy for "..tostring(pause).." seconds")
+        end
+        pause = (pause - delta_time) > 0 and (pause - delta_time) or 0
+        if (pause > 0) then return end
+    end
+
+    if (ready_to_cast()) then
+        if (settings.verbose) then
+            windower.add_to_chat(17, _addon.name..": Ready to cast")
+        end
+        if (math.random(1, 100) > settings.frequency) then
+            target = choose_target()
+            if (target ~= nil) then
+                set_target(target)
+                spell = choose_spell()
+                if (spell ~= nil and spell ~= '') then
+                    if (check_hpp(target) and check_distance(target)) then
+                        action_taken = true
+                        cast_spell(spell, target)
+                    end
+                end
+            end
+        end
+    end
+
+    pause = settings.delay
 end)
 
 windower.register_event('zone change', function(id, data)
