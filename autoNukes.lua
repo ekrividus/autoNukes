@@ -83,6 +83,7 @@ is_busy = 0
 action_delay = 1.2
 after_cast_delay = 1.5
 failed_cast_delay = 1.5
+skillchain_delay = 8
 
 function buff_active(id)
     if T(windower.ffxi.get_player().buffs):contains(BuffID) == true then
@@ -288,7 +289,7 @@ function engine_start()
     player = windower.ffxi.get_player()
     stop = false
     pause = 0
-    is_busy = player.status
+    is_busy = 0
     last_time = os.clock()
 end
 
@@ -336,7 +337,13 @@ end
 windower.register_event('incoming chunk', function(id, packet, data, modified, is_injected, is_blocked)
 	if (id ~= 0x28 or not active) then
 		return
-	end
+    end
+    
+	local actions_packet = windower.packets.parse_action(packet)
+	local mob_array = windower.ffxi.get_mob_array()
+	local valid = false
+	local party = windower.ffxi.get_party()
+	local party_ids = T{}
 	
 	player = windower.ffxi.get_player()
 
@@ -362,7 +369,28 @@ windower.register_event('incoming chunk', function(id, packet, data, modified, i
 			is_busy = 0
 			is_casting = false
 		end
+    end
+    
+    -- Get ids of all current party member
+	for _, member in pairs (party) do
+		if (type(member) == 'table' and member.mob) then
+			party_ids:append(member.mob.id)
+		end
 	end
+
+	local cur_t = windower.ffxi.get_mob_by_target('t')
+	local bt = windower.ffxi.get_mob_by_target('bt')
+	
+	for _, target in pairs(actions_packet.targets) do
+		local t = windower.ffxi.get_mob_by_id(target.id)
+		-- Make sure the mob is claimed by our alliance then
+		if ((cur_t and cur_t.id == t.id) or (bt and bt.id == t.id) or party_ids:contains(t.claim_id)) then
+			-- Make sure the mob is a valid MB target
+            if (t and (t.is_npc and t.valid_target and not t.in_party and not t.charmed) and t.distance:sqrt() < 22) then
+                pause = skillchain_delay
+            end
+        end
+    end
 end)
 
 windower.register_event('outgoing chunk', function(id, data)
