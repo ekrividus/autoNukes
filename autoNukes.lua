@@ -36,7 +36,7 @@ single bursting only for now, but double may me introduced later
 _addon.version = '0.1.0'
 _addon.name = 'autoNukes'
 _addon.author = 'Ekrividus'
-_addon.commands = {'autoNukes', 'nukes'}
+_addon.commands = {'autoNukes', 'nukes', 'ank'}
 _addon.lastUpdate = '4/15/2020'
 _addon.windower = '4'
 
