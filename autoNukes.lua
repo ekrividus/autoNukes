@@ -170,7 +170,7 @@ end
 
 function choose_spell()
     if (verbose) then
-        windower.add_to_chat(17, _addon.name..": Choosing spell")
+        windower.add_to_chat(207, _addon.name..": Choosing spell")
     end
 
     if (settings.single_spell) then
@@ -179,7 +179,7 @@ function choose_spell()
 
         if (recast ~= nil and recast > 0) then
             if (settings.verbose) then
-                windower.add_to_chat(17, _addon.name..": Spell: \""..spell.."\" recast remaining = "..(recast/100)..".")
+                windower.add_to_chat(207, _addon.name..": Spell: \""..spell.."\" recast remaining = "..(recast/100)..".")
             end
             return nil
         else
@@ -202,7 +202,7 @@ end
 
 function choose_target()
     if (verbose) then
-        windower.add_to_chat(17, _addon.name..": Choosing target.")
+        windower.add_to_chat(207, _addon.name..": Choosing target.")
     end
 
     local bt = windower.ffxi.get_mob_by_target('bt')
@@ -222,7 +222,7 @@ function choose_target()
     local pt = windower.ffxi.get_party()
     if (pt~= nil) then
         if (settings.verbose) then
-            windower.add_to_chat(17, _addon.name..": Checking party for targets...")
+            windower.add_to_chat(207, _addon.name..": Checking party for targets...")
         end
         -- If there's no bt and player isn't in combat then see if we can get a pt member's target
         for _, member in ipairs(pt) do
@@ -230,7 +230,7 @@ function choose_target()
                 local target = windower.ffxi.get_mob_by_index(member.mob.target_index)
                 if (target ~= nil and target.is_npc and target.hpp ~= nil and target.hpp > 0) then
                     if (settings.verbose) then
-                        windower.add_to_chat(17, _addon.name..": No <bt> Found targeting party member's target - "..target.name)
+                        windower.add_to_chat(207, _addon.name..": No <bt> Found targeting party member's target - "..target.name)
                     end
                     bt = target
                     for _, mob in ipairs(mob_array) do
@@ -277,7 +277,7 @@ function cast_spell(spell, target)
     end
 
     if (settings.verbose) then
-        windower.add_to_chat(17, _addon.name..": Casting spell "..tostring(spell)..' on '..target.name)
+        windower.add_to_chat(207, _addon.name..": Casting spell "..tostring(spell)..' on '..target.name)
     end
 
     windower.send_command('input /ma "'..spell..'" '..'<t>')
@@ -285,7 +285,7 @@ function cast_spell(spell, target)
 end
 
 function engine_start()
-    windower.add_to_chat(17, _addon.name..": Starting...")
+    windower.add_to_chat(207, _addon.name..": Starting...")
     player = windower.ffxi.get_player()
     stop = false
     pause = 0
@@ -294,7 +294,7 @@ function engine_start()
 end
 
 function engine_stop()
-    windower.add_to_chat(17, _addon.name..": Stopping...")
+    windower.add_to_chat(207, _addon.name..": Stopping...")
     stop = true
 end
 
@@ -305,31 +305,31 @@ function engine_pause(t)
 end
 
 function show_help()
-    windower.add_to_chat(17, "=*=*=    ".._addon.name..": Commands    =*=*=")
-    windower.add_to_chat(17, "Help - Shows this info")
-    windower.add_to_chat(17, "Status or Show - Display current settings and other info")
-    windower.add_to_chat(17, "Start|On - Starts the engine")
-    windower.add_to_chat(17, "Stop|Off - Stops the engine")
-    windower.add_to_chat(17, "(C)ast <spell|ga|ra|ja|helix> - Sets the spell type to be cast, not implemented yet")
-    windower.add_to_chat(17, "(T)ier # - Sets the spell tier to be cast")
-    windower.add_to_chat(17, "(D)elay #.# - Sets the engines speed in seconds")
-    windower.add_to_chat(17, "(P)ause #.# - Pauses the engine for #.# seconds")
-    windower.add_to_chat(17, "(S)pell name - sets the spell to cast to name, do not include tier")
-    windower.add_to_chat(17, "(Dist)ance < or > # - The closest a mob can get before casting stops")
-    windower.add_to_chat(17, "MP ## - Will not cast if MP would fall below this amount")
-    windower.add_to_chat(17, "HP < or > # - The hp percentage of the mob where casting will stop if above or below")
+    windower.add_to_chat(207, "=*=*=    ".._addon.name..": Commands    =*=*=")
+    windower.add_to_chat(207, "Help - Shows this info")
+    windower.add_to_chat(207, "Status or Show - Display current settings and other info")
+    windower.add_to_chat(207, "Start|On - Starts the engine")
+    windower.add_to_chat(207, "Stop|Off - Stops the engine")
+    windower.add_to_chat(207, "(C)ast <spell|ga|ra|ja|helix> - Sets the spell type to be cast, not implemented yet")
+    windower.add_to_chat(207, "(T)ier # - Sets the spell tier to be cast")
+    windower.add_to_chat(207, "(D)elay #.# - Sets the engines speed in seconds")
+    windower.add_to_chat(207, "(P)ause #.# - Pauses the engine for #.# seconds")
+    windower.add_to_chat(207, "(S)pell name - sets the spell to cast to name, do not include tier")
+    windower.add_to_chat(207, "(Dist)ance < or > # - The closest a mob can get before casting stops")
+    windower.add_to_chat(207, "MP ## - Will not cast if MP would fall below this amount")
+    windower.add_to_chat(207, "HP < or > # - The hp percentage of the mob where casting will stop if above or below")
 end
 
 function show_status()
-    windower.add_to_chat(17, "=-=-=-=    ".._addon.name..": Status    =-=-=-=")
-    windower.add_to_chat(17, "Running: "..(stop and "No" or "Yes"))
-    windower.add_to_chat(17, "Paused: "..(pause ~= 0 and (tostring(pause).." seconds more") or "No"))
-    windower.add_to_chat(17, "Max Cast Tier: "..tostring(settings.tier))
-    windower.add_to_chat(17, "Delay: "..settings.delay)
-    windower.add_to_chat(17, "Spell: "..settings.spell)
-    windower.add_to_chat(17, "Mindist: "..settings.min_dist.." Maxdist: "..settings.max_dist)
-    windower.add_to_chat(17, "MP: "..settings.mp)
-    windower.add_to_chat(17, "Min HPP: "..settings.min_hpp.." Max HPP: "..settings.max_hpp)
+    windower.add_to_chat(207, "=-=-=-=    ".._addon.name..": Status    =-=-=-=")
+    windower.add_to_chat(207, "Running: "..(stop and "No" or "Yes"))
+    windower.add_to_chat(207, "Paused: "..(pause ~= 0 and (tostring(pause).." seconds more") or "No"))
+    windower.add_to_chat(207, "Max Cast Tier: "..tostring(settings.tier))
+    windower.add_to_chat(207, "Delay: "..settings.delay)
+    windower.add_to_chat(207, "Spell: "..settings.spell)
+    windower.add_to_chat(207, "Mindist: "..settings.min_dist.." Maxdist: "..settings.max_dist)
+    windower.add_to_chat(207, "MP: "..settings.mp)
+    windower.add_to_chat(207, "Min HPP: "..settings.min_hpp.." Max HPP: "..settings.max_hpp)
 
 end
 
@@ -412,12 +412,12 @@ windower.register_event('prerender', function(...)
     last_time = time
 
     if (settings.verbose) then
-        windower.add_to_chat(17, _addon.name..": Engine loop...\nPlayer status: "..player.status)
+        windower.add_to_chat(207, _addon.name..": Engine loop...\nPlayer status: "..player.status)
     end
 
     if (is_busy > 0) then
         if (settings.verbose) then
-            windower.add_to_chat(17, _addon.name..": Busy for "..tostring(is_busy).." seconds")
+            windower.add_to_chat(207, _addon.name..": Busy for "..tostring(is_busy).." seconds")
         end
         is_busy = (is_busy - delta_time) > 0 and (is_busy - delta_time) or 0
         if (is_busy > 0) then return end
@@ -425,11 +425,11 @@ windower.register_event('prerender', function(...)
 
     if (pause == -9999) then
         if (settings.verbose) then
-            windower.add_to_chat(17, _addon.name..": Paused indefinently")
+            windower.add_to_chat(207, _addon.name..": Paused indefinently")
         end
     elseif (pause > 0) then
         if (settings.verbose) then
-            windower.add_to_chat(17, _addon.name..": Busy for "..tostring(pause).." seconds")
+            windower.add_to_chat(207, _addon.name..": Busy for "..tostring(pause).." seconds")
         end
         pause = (pause - delta_time) > 0 and (pause - delta_time) or 0
         if (pause > 0) then return end
@@ -437,7 +437,7 @@ windower.register_event('prerender', function(...)
 
     if (ready_to_cast()) then
         if (settings.verbose) then
-            windower.add_to_chat(17, _addon.name..": Ready to cast")
+            windower.add_to_chat(207, _addon.name..": Ready to cast")
         end
         if (math.random(1, 100) > settings.frequency) then
             target = choose_target()
@@ -497,8 +497,8 @@ windower.register_event('addon command', function(...)
         engine_stop()
     elseif (args[1] == 'd' or args[1] == 'delay') then
         if (args[2] == nil or tonumber(args[2]) < 0 or tonumber(args[2]) > 600) then
-            windower.add_to_chat(17, _addon.name..": Invalid tier - Usage: nukes delay #.#")
-            windower.add_to_chat(17, _addon.name..": Where #.# is a number of seconds for delay from 0 to 600")
+            windower.add_to_chat(207, _addon.name..": Invalid tier - Usage: nukes delay #.#")
+            windower.add_to_chat(207, _addon.name..": Where #.# is a number of seconds for delay from 0 to 600")
         else
             settings.delay = tonumber(args[2])
         end
@@ -510,15 +510,15 @@ windower.register_event('addon command', function(...)
                 pause = -9999
             end
         elseif (tonumber(args[2]) < 0.1 or tonumber(args[2]) > 600) then
-            windower.add_to_chat(17, _addon.name..": Invalid pause time - Usage: nukes pause #.#")
-            windower.add_to_chat(17, _addon.name..": Without a number will pause or unpause indefinetly")
+            windower.add_to_chat(207, _addon.name..": Invalid pause time - Usage: nukes pause #.#")
+            windower.add_to_chat(207, _addon.name..": Without a number will pause or unpause indefinetly")
         else
             pause = tonumber(args[2])
         end
     elseif (args[1] == 'c' or args[1] == 'cast') then
         if (args[2] == nil) then
-            windower.add_to_chat(17, _addon.name..": Invalid type - Usage: nukes cast type")
-            windower.add_to_chat(17, _addon.name..": Where type is one of spell ga ra ja or helix")
+            windower.add_to_chat(207, _addon.name..": Invalid type - Usage: nukes cast type")
+            windower.add_to_chat(207, _addon.name..": Where type is one of spell ga ra ja or helix")
         else
             settings.tier = tonumber(args[2])
         end
@@ -537,20 +537,20 @@ windower.register_event('addon command', function(...)
             settings.spell = args[2]:lower():ucfirst()
             settings.single_spell = true
         else
-            windower.add_to_chat(17, _addon.name..": Usage - nukes spell spellname")
-            windower.add_to_chat(17, _addon.name..": Without tier, use the tier option to choose spell tier")
+            windower.add_to_chat(207, _addon.name..": Usage - nukes spell spellname")
+            windower.add_to_chat(207, _addon.name..": Without tier, use the tier option to choose spell tier")
         end
     elseif (args[1] == 't' or args[1] == 'tier') then
         if (args[2] == nil or tonumber(args[2]) < 1 or tonumber(args[2]) > 6) then
-            windower.add_to_chat(17, _addon.name..": Invalid tier - Usage: nukes tier #")
-            windower.add_to_chat(17, _addon.name..": Where # is a number between 1 and 6")
+            windower.add_to_chat(207, _addon.name..": Invalid tier - Usage: nukes tier #")
+            windower.add_to_chat(207, _addon.name..": Where # is a number between 1 and 6")
         else
             settings.tier = tonumber(args[2])
         end
     elseif (args[1] == 'distance' or args[1] == 'dist') then
         if (args[2] == nil or args[3] == nil or (args[2] ~= '<' and args[2] ~= '>') or tonumber(args[3]) < 0 or tonumber(args[3]) > 24) then
-            windower.add_to_chat(17, _addon.name..": Usage: Nukes distance > # or nukes distance < #")
-            windower.add_to_chat(17, "# is the closest and furhtest from target that spells will be cast, defaults nuke if distanc > 0.1 and distance < 24")
+            windower.add_to_chat(207, _addon.name..": Usage: Nukes distance > # or nukes distance < #")
+            windower.add_to_chat(207, "# is the closest and furhtest from target that spells will be cast, defaults nuke if distanc > 0.1 and distance < 24")
         else
             if (args[2] == '>') then
                 settings.min_dist = tonumber(args[3])
@@ -564,8 +564,8 @@ windower.register_event('addon command', function(...)
         end
     elseif (args[1] == 'hp') then
         if (args[2] == nil or args[3] == nil or (args[2] ~= '<' and args[2] ~= '>') or tonumber(args[3]) < 0 or tonumber(args[3]) > 100) then
-            windower.add_to_chat(17, _addon.name..": Usage: Nukes hp > # or nukes hp < #")
-            windower.add_to_chat(17, "# is the hp percentage to not nuke above or below, defaults nuke if hp > 5% and hp < 98%")
+            windower.add_to_chat(207, _addon.name..": Usage: Nukes hp > # or nukes hp < #")
+            windower.add_to_chat(207, "# is the hp percentage to not nuke above or below, defaults nuke if hp > 5% and hp < 98%")
         else
             if (args[2] == '>') then
                 settings.min_hpp = tonumber(args[3])
@@ -577,16 +577,16 @@ windower.register_event('addon command', function(...)
         if (args[2] ~= nil and args[2] >= 1 and args[2] <= 100) then
             settings.frequency = tonumber(args[2])
         else
-            windower.add_to_chat(17, _addon.name..": Invalid frequency - Usage: nukes frequency #")
-            windower.add_to_chat(17, _addon.name..": Where # is a number between 1 and 100")
+            windower.add_to_chat(207, _addon.name..": Invalid frequency - Usage: nukes frequency #")
+            windower.add_to_chat(207, _addon.name..": Where # is a number between 1 and 100")
         end
     elseif (args[1] == 'verbose' or args[1] == 'v') then
         settings.verbose = not settings.verbose
     elseif (args[1] == 'save') then
         settings:save('all')
-        windower.add_to_chat(17, _addon.name..": Settings file "..fname.." saved")
+        windower.add_to_chat(207, _addon.name..": Settings file "..fname.." saved")
     else
-        windower.add_to_chat(17, _addon.name..": Use help to see list of commands")
+        windower.add_to_chat(207, _addon.name..": Use help to see list of commands")
         show_status()
     end
 end)
